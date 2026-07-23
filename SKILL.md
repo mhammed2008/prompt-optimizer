@@ -299,7 +299,7 @@ See `references/guide.md` for the full anti-patterns table with additional entri
 
 1. **Analysis** — 2-4 bullets: what changed. Include detected **Execution Mode** (Active Agent vs Chat).
 2. **Clarifying Questions** — if Gate 2 triggered, use interactive `ask_question` tool (or text fallback). Wait for answers.
-3. **Optimized Prompt** — after answers (or if no questions needed): the prompt in a clean code block. Label **(Finalized)**.
+3. **Optimized Prompt** — after answers (or if no questions needed): wrap the output in a 4-backtick code block (````markdown ... ````) so any nested 3-backtick code blocks (e.g. ```bash) do not prematurely terminate the container. Label **(Finalized)**.
 4. **Remaining Risks** — failure modes sealed, or "No remaining risks identified."
 5. **Model Cost Recommendation** — suggest compute tier to optimize cost/performance ratio:
    - _Light Task_ → `Gemini Flash / Claude Haiku / GPT-4o-mini` (Fast & Cheap)
