@@ -145,28 +145,82 @@ graph LR
 
 ## ⚡ Quick Installation
 
-Copy and paste **one prompt** into your AI assistant (Antigravity, Gemini, Cursor) to install automatically:
+Copy and paste **one prompt** into your target AI assistant to install automatically:
+
+<details open>
+<summary><b>🌐 Universal One-Prompt Installer (Auto-Detects IDE)</b></summary>
 
 ```text
-Create a new skill called "Prompt Optimizer" by performing the following steps:
+Install the "Prompt Optimizer" skill by performing the following:
 
-1. Create the directory: ~/.gemini/config/skills/prompt_optimizer/
-2. Create the directory: ~/.gemini/config/skills/prompt_optimizer/references/
-3. Download and save the SKILL.md file from:
-   https://raw.githubusercontent.com/mhammed2008/prompt-optimizer/main/SKILL.md
-   → Save to: ~/.gemini/config/skills/prompt_optimizer/SKILL.md
-4. Download and save the guide.md file from:
-   https://raw.githubusercontent.com/mhammed2008/prompt-optimizer/main/references/guide.md
-   → Save to: ~/.gemini/config/skills/prompt_optimizer/references/guide.md
+1. Detect target directory based on my current environment:
+   - Antigravity / Gemini: ~/.gemini/config/skills/prompt_optimizer/
+   - Claude Code: ~/.claude/skills/prompt_optimizer/ (or .claude/skills/ in workspace)
+   - Cursor / Windsurf: .cursor/rules/ or .agents/skills/prompt_optimizer/
+   - Project-Scoped: .agents/skills/prompt_optimizer/ in workspace root
 
-After creating the files, confirm installation by listing the contents of ~/.gemini/config/skills/prompt_optimizer/
+2. Download and save the official skill files from GitHub:
+   - SKILL.md → https://raw.githubusercontent.com/mhammed2008/prompt-optimizer/main/SKILL.md
+   - references/guide.md → https://raw.githubusercontent.com/mhammed2008/prompt-optimizer/main/references/guide.md
+
+3. Confirm installation by listing the created directory contents.
 ```
+</details>
+
+<details>
+<summary><b>🚀 Antigravity & Gemini IDE Prompt</b></summary>
+
+```text
+Create a new skill called "Prompt Optimizer" in my Antigravity environment:
+
+1. Create folder: ~/.gemini/config/skills/prompt_optimizer/
+2. Create folder: ~/.gemini/config/skills/prompt_optimizer/references/
+3. Download SKILL.md from:
+   https://raw.githubusercontent.com/mhammed2008/prompt-optimizer/main/SKILL.md
+   -> Save to: ~/.gemini/config/skills/prompt_optimizer/SKILL.md
+4. Download guide.md from:
+   https://raw.githubusercontent.com/mhammed2008/prompt-optimizer/main/references/guide.md
+   -> Save to: ~/.gemini/config/skills/prompt_optimizer/references/guide.md
+5. Confirm installation by listing ~/.gemini/config/skills/prompt_optimizer/
+```
+</details>
+
+<details>
+<summary><b>🤖 Claude Code / Anthropic Claude Prompt</b></summary>
+
+```text
+Install the Prompt Optimizer skill into my Claude environment:
+
+1. Create directory: ~/.claude/skills/prompt_optimizer/ (or .agents/skills/prompt_optimizer/ for this repository)
+2. Create subfolder: references/
+3. Download SKILL.md from: https://raw.githubusercontent.com/mhammed2008/prompt-optimizer/main/SKILL.md
+4. Download guide.md from: https://raw.githubusercontent.com/mhammed2008/prompt-optimizer/main/references/guide.md
+5. Confirm the skill is active for prompt optimization requests.
+```
+</details>
+
+<details>
+<summary><b>⚡ Cursor / Windsurf / GitHub Copilot Prompt</b></summary>
+
+```text
+Set up Prompt Optimizer rules in this repository:
+
+1. Create folder: .cursor/rules/ (or .agents/skills/prompt_optimizer/)
+2. Download SKILL.md from https://raw.githubusercontent.com/mhammed2008/prompt-optimizer/main/SKILL.md
+3. Save as .cursor/rules/prompt_optimizer.mdc (or .agents/skills/prompt_optimizer/SKILL.md)
+4. Confirm the rule is loaded for workspace editing and prompt rewriting tasks.
+```
+</details>
 
 ### Manual Installation
 
 ```bash
+# Global installation (Gemini / Antigravity)
 git clone https://github.com/mhammed2008/prompt-optimizer.git
 cp -r prompt-optimizer ~/.gemini/config/skills/prompt_optimizer
+
+# Project-scoped installation (Any IDE / Workspace)
+git clone https://github.com/mhammed2008/prompt-optimizer.git .agents/skills/prompt_optimizer
 ```
 
 ### Invocation Shortcuts
