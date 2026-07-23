@@ -566,6 +566,29 @@ When the user's prompt or workspace contains sensitive information:
 
 ---
 
+## Context Engineering & Prompt Caching Strategy (v11)
+
+### Prefix KV-Caching Architecture
+Model providers (Anthropic, OpenAI, Google) cache the Key-Value (KV) computations of static prompt prefixes. Changing a single token in the prefix invalidates the cache for all subsequent tokens.
+
+Prompt Optimizer enforces **Strict Stable-to-Dynamic Ordering**:
+1. **System & Role Rules** (100% Static Prefix — Max Cache Hits)
+2. **Skill Discovery & Reference Docs** (Static per Domain)
+3. **Workspace Constraints & Schema** (Semi-Static)
+4. **Direct Workspace Actions** (Task Specific)
+5. **Dynamic User Input / Variables** (Uncached Tail)
+
+### Partial Skill Context Pruning
+Loading full 500-line skill files into context creates a recurring "token tax." In v11, `<skill_discovery>` explicitly instructs agents to perform **line-range slicing** via `view_file(StartLine, EndLine)` to read ONLY the target domain section.
+
+### Smart Model Cost Routing
+Not every prompt requires a $15/M token frontier model. Output blueprints include a **Model Cost Recommendation Token** suggesting the optimal compute tier:
+- **Light Tasks**: Gemini Flash / Claude Haiku / GPT-4o-mini
+- **Standard Tasks**: Claude Sonnet / Gemini Flash / GPT-4o
+- **Heavy Tasks**: Claude Opus / Gemini Pro / GPT-5
+
+---
+
 ## Feedback Loop
 
 After the user runs the optimized prompt and reports results:
@@ -578,7 +601,8 @@ After the user runs the optimized prompt and reports results:
 
 ## Version History
 
-- **v10 (current)** — Meta-Skill & Skill Router evolution. Introduced Dynamic Skill Routing & Anti-Skill Hell Protocol: automatically instructs target AI agents to scan locally installed skills (`~/.gemini/config/skills/`, `.agents/skills/`, installed plugins/MCP) or perform a targeted web/internet search for domain-specific community skills before writing code. Completely dynamic (zero hardcoded skill names). Positioned Prompt Optimizer as an orchestration layer / Meta-Skill.
+- **v11 (current)** — Context Engineering & Efficiency Upgrade. Integrated KV-Cache Prefix Ordering (Stable Prefix → Dynamic Tail) for ~50-80% token cost reduction on API providers. Added Partial Context Pruning (line-range slicing for skill files to prevent context bloat). Added Token Compression rules (concise internal monologue). Introduced Model Cost Recommendation Tokens in Output Format. Grouped non-dependent file actions into parallel execution blueprints.
+- **v10** — Meta-Skill & Skill Router evolution. Introduced Dynamic Skill Routing & Anti-Skill Hell Protocol: automatically instructs target AI agents to scan locally installed skills (`~/.gemini/config/skills/`, `.agents/skills/`, installed plugins/MCP) or perform a targeted web/internet search for domain-specific community skills before writing code. Completely dynamic (zero hardcoded skill names). Positioned Prompt Optimizer as an orchestration layer / Meta-Skill.
 - **v9** — Token efficiency refactor: SKILL.md reduced from 444 to ~280 lines by moving examples to guide.md. Merged Step 3 + Step 3.5 into unified "Tier, Scale & Adapt" step (clean integer numbering). Added open-source model support (Llama, Mistral, DeepSeek, Qwen) with dedicated syntax adapter and scaling rules. Added negative optimization examples ("What Bad Optimization Looks Like"). Added PII/sensitive data handling guidance. Compacted anti-patterns table. Merged Model & Agent Strategies into Step 4. Strengthened Gate 2 assumption-documentation for >2 unknowns.
 - **v8** — Gate 3 structural enforcement with hard decision tree and inline example. Model-aware output scaling (Frontier/Mid-range/Lightweight). Accessibility expansion (ARIA labels, WCAG AA contrast, keyboard nav) alongside responsive design for all UI tasks. 3 new examples (Light-creative/UI, data-transformation, prompt-chaining). Security hardening with 4 real-world injection attack examples and production checklist. Benchmark test suite (manual, free). Context cost reduction via loading directive. Difficulty calibration in output format. Feedback loop for iterative improvement.
 - **v7** — Integrated production system prompt principles analyzed from leaked prompts (Claude Code, Cursor, Gemini 3, OpenAI Codex/Memory). Added Model Syntax Adapters (Claude XML tags vs Gemini H2 headers vs GPT System Delimiters vs Agentic IDE tags), Memory & Preference Layering (`# Assistant Response Preferences`), and Agent Lifecycle Status Signals (`result:`).

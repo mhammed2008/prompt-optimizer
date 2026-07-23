@@ -1,15 +1,15 @@
 # 🧠 Prompt Optimizer
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-v10.0-blue.svg?style=for-the-badge&logo=git" alt="Version">
-  <img src="https://img.shields.io/badge/architecture-Meta--Skill%20%26%20Skill%20Router-emerald.svg?style=for-the-badge" alt="Architecture">
+  <img src="https://img.shields.io/badge/version-v11.0-blue.svg?style=for-the-badge&logo=git" alt="Version">
+  <img src="https://img.shields.io/badge/architecture-Meta--Skill%20%26%20Context%20Engine-emerald.svg?style=for-the-badge" alt="Architecture">
+  <img src="https://img.shields.io/badge/efficiency-KV--Cache%20Prefix%20Optimized-orange.svg?style=for-the-badge" alt="KV Cache">
   <img src="https://img.shields.io/badge/license-MIT-green.svg?style=for-the-badge" alt="License">
-  <img src="https://img.shields.io/badge/target-Agents%20%7C%20Gemini%20%7C%20Claude%20%7C%20GPT%20%7C%20OSS-purple.svg?style=for-the-badge" alt="Targets">
 </p>
 
 <p align="center">
-  <b>The Enterprise-Grade Meta-Skill & Skill Router for AI Coding Agents and Large Language Models.</b><br>
-  Transform raw, underspecified prompts into structured, model-tuned, autonomous execution blueprints.
+  <b>The Enterprise-Grade Meta-Skill, Context Engine & Skill Router for AI Coding Agents and Large Language Models.</b><br>
+  Transform raw, underspecified prompts into KV-cache-optimized, model-tuned, autonomous execution blueprints.
 </p>
 
 ---

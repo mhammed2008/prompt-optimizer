@@ -1,11 +1,11 @@
 ---
 name: Prompt Optimizer
-description: Meta-Skill & Skill Router. Rewrites a user's raw prompt into a professional, structured, model-tuned instruction set — applying persona framing, structured reasoning guidance, active agent execution framing, dynamic local and web skill discovery (Anti-Skill Hell protocol), constraint layering, and output-schema specification, tuned separately for Gemini, Claude, GPT, open-source models, and AI Coding Agents. Use this whenever the user explicitly asks to "optimize," "improve," "refine," "polish," or "rewrite" a prompt, or invokes it directly (e.g. "/Prompt Optimizer", "optimize this prompt for Claude", "make this a better prompt"). Do NOT use this for ordinary requests, coding tasks, or any message that is not itself asking for help engineering a prompt — this skill rewrites prompts, it does not execute them.
+description: Meta-Skill & Skill Router. Rewrites a user's raw prompt into a professional, structured, KV-cache-optimized instruction set — applying KV-cache prefix ordering, partial context pruning, active agent execution framing, dynamic local and web skill discovery (Anti-Skill Hell protocol), constraint layering, and output-schema specification, tuned separately for Gemini, Claude, GPT, open-source models, and AI Coding Agents. Use this whenever the user explicitly asks to "optimize," "improve," "refine," "polish," or "rewrite" a prompt, or invokes it directly (e.g. "/Prompt Optimizer", "optimize this prompt for Claude", "make this a better prompt"). Do NOT use this for ordinary requests, coding tasks, or any message that is not itself asking for help engineering a prompt — this skill rewrites prompts, it does not execute them.
 ---
 
-# Prompt Optimizer (Meta-Skill & Skill Router)
+# Prompt Optimizer (Meta-Skill & Context Engine)
 
-Rewrites a user's raw prompt into a clear, structured, model-tuned instruction — matching effort to the task instead of maximizing length for its own sake. Functions as a **Meta-Skill & Skill Router**: saves users from "Skill Hell" by dynamically instructing target AI agents to discover and inspect locally installed skills or search the web/internet for specialized skills before writing code. Ensures coding prompts explicitly command AI agents to **directly edit workspace files** rather than returning passive chat code blocks. Only run this when the user explicitly asks to optimize a prompt or invokes this skill by name.
+Rewrites a user's raw prompt into a clear, structured, KV-cache-optimized instruction — matching effort to the task instead of maximizing length for its own sake. Functions as a **Meta-Skill & Skill Router**: enforces **Prefix KV-Caching** (Stable Prefix → Dynamic Tail) to slash token costs by ~50-80%, prunes context, and dynamically instructs target AI agents to discover and inspect locally installed skills or search the web/internet for specialized skills before writing code. Ensures coding prompts explicitly command AI agents to **directly edit workspace files** rather than returning passive chat code blocks. Only run this when the user explicitly asks to optimize a prompt or invokes this skill by name.
 
 > **Loading Rule**: Only read `references/guide.md` if the task is **Heavy tier** or if you need worked examples for an unfamiliar domain. For Light and Standard tasks, this file alone is sufficient. For additional worked examples across all tiers, see `references/guide.md`.
 
@@ -80,6 +80,9 @@ Select what fits — Light tier usually needs none, Standard a few, Heavy most:
 | **J. Model Syntax Adapters** | Reformat prompt into model-native structures (Claude XML tags vs Gemini Markdown headers vs GPT/Codex delimiters) |
 | **K. Agent Lifecycle Signals** | Define explicit status tokens (`result: <deliverable>`, `needs input: <blocker>`, `failed: <reason>`) for background agents |
 | **L. Dynamic Skill Routing** | **Anti-Skill Hell Protocol**: Instruct agent to check locally installed skills (`~/.gemini/config/skills/`, `.agents/skills/`, plugins). If none match, instruct agent to search the web/internet for specialized community skills or CLI specs before writing code from scratch. Zero hardcoded skill names. |
+| **M. KV-Cache Prefix Ordering** | Order prompt sections strictly from **Stable Prefix (System/Role → Skills/Docs → Workspace Rules)** to **Variable Tail (Dynamic Task → User Input)** to maximize prompt caching hit rates (~50–80% cost reduction). |
+| **N. Partial Context Pruning** | Instruct agent to load *only relevant line ranges* of `SKILL.md` matching `<task_domain>` via `view_file` rather than reading full multi-hundred line skill files into context window. |
+| **O. Token Compression** | Mandate concise internal monologue: *"Single-sentence silent thought step before file edits; eliminate chat commentary."* |
 
 ---
 
@@ -204,7 +207,7 @@ When generating prompts for complex or domain-specific tasks:
 ```xml
 <skill_discovery>
 - Check locally installed skills (~/.gemini/config/skills/, .agents/skills/) for <task_domain>.
-- If a local skill exists, read its SKILL.md file before proceeding.
+- If a local skill exists, call view_file on ONLY the relevant section/line-range of SKILL.md to avoid context bloat.
 - If no local skill exists, perform a targeted web search for best practices/skills for <task_domain>.
 </skill_discovery>
 <making_code_changes>
@@ -279,8 +282,12 @@ See `references/guide.md` for the full anti-patterns table with additional entri
 2. **Clarifying Questions** — if Gate 2 triggered, use interactive `ask_question` tool (or text fallback). Wait for answers.
 3. **Optimized Prompt** — after answers (or if no questions needed): the prompt in a clean code block. Label **(Finalized)**.
 4. **Remaining Risks** — failure modes sealed, or "No remaining risks identified."
-5. **Model/Agent Notes** *(optional)* — tips for target AI agent or model.
-6. **Difficulty Calibration** *(optional)* — if the task is simple and the optimized prompt is barely different from the raw prompt, say so honestly: *"This prompt was already well-scoped. Only minor constraints added."* Do not inflate value.
+5. **Model Cost Recommendation** — suggest compute tier to optimize cost/performance ratio:
+   - *Light Task* → `Gemini Flash / Claude Haiku / GPT-4o-mini` (Fast & Cheap)
+   - *Standard Task* → `Claude Sonnet / Gemini Flash / GPT-4o` (Balanced)
+   - *Heavy Task* → `Claude Opus / Gemini Pro / GPT-5` (Frontier)
+6. **Model/Agent Notes** *(optional)* — tips for target AI agent or model.
+7. **Difficulty Calibration** *(optional)* — if the task is simple and the optimized prompt is barely different from the raw prompt, say so honestly: *"This prompt was already well-scoped. Only minor constraints added."* Do not inflate value.
 
 ---
 
