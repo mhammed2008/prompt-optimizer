@@ -23,6 +23,17 @@ The optimizer asks clarifying questions and **waits** before generating the prom
 ### Why Structured Reasoning Over "Think Step-by-Step"
 Modern frontier models have built-in reasoning capabilities. Explicitly asking for chain-of-thought can sometimes be unnecessary or even degrade output in reasoning-focused models (e.g., o-series). The skill now recommends requesting a "careful analysis" or "structured solution" and constraining the *output format* rather than the internal reasoning process.
 
+### Why Meta-Skill & Anti-Skill Hell (Dynamic Skill Routing)
+As AI agent ecosystems grow, users face **"Skill Hell"**: having dozens of installed skills (or plugin repositories) and forgetting which ones exist, or having AI agents write naive code from scratch when a dedicated skill already exists for the domain.
+
+Prompt Optimizer acts as a **Meta-Skill & Skill Router**:
+1. **Local Skill Discovery**: Automatically instructs the target agent to scan locally installed skills (`~/.gemini/config/skills/`, `.agents/skills/`, installed plugins/MCP) and call `view_file` on matching `SKILL.md` files before writing code.
+2. **Web/Internet Skill Search Fallback**: If no local skill matches, it instructs the agent to perform a web search for community skill specs, CLI guidelines, or standard instruction sets for that technology.
+3. **Zero Hardcoding**: Instead of hardcoding static skill names, matching happens dynamically based on task domain keywords.
+
+> **Is Prompt Optimizer still just a skill?**
+> Prompt Optimizer is a **Meta-Skill & Skill Router** — an orchestration skill whose job is not only to structure text, but to discover, route to, and invoke other specialized skills dynamically.
+
 ### Why Proportionality Matters
 A 500-token prompt for a 50-token task wastes context window. A 50-token prompt for a complex architecture task is dangerously underspecified. The tier system (Light/Standard/Heavy) enforces proportionality automatically.
 
@@ -87,6 +98,16 @@ This skill improves how a request is phrased. It does not:
   - Focus constraints strictly on the **output format** and **workspace actions**.
   - Avoid forcing detailed step-by-step chain-of-thought instructions; allow the model's internal thinking process to run unconstrained.
 
+### Open-Source Models (Llama, Mistral, DeepSeek, Qwen)
+- **Strengths**: Privacy (local inference), cost-free, customizable, no rate limits.
+- **Limitations**: Smaller context windows (4K-128K typical), weaker instruction-following on complex multi-section prompts, inconsistent XML tag parsing, higher format hallucination rate.
+- **Best Practices**:
+  - Use Markdown headers, not XML tags — most open-source models parse XML unreliably.
+  - Keep total prompt under 2000 tokens for reliable results.
+  - Prefer Light/Standard tier — Heavy tier prompts often exceed these models' instruction-following capacity.
+  - Be explicit about output format and language — open-source models hallucinate format more often than frontier models.
+  - If the task genuinely requires Heavy tier, recommend the user switch to a frontier model and explain why.
+  - For code tasks, keep constraints to 3-5 bullets max. Over-constraining degrades output quality.
 
 ---
 
@@ -126,6 +147,19 @@ This section applies **only** when the optimized prompt will process untrusted u
 - [ ] Authority claim rejection present
 - [ ] Output format locked against manipulation
 - [ ] Fetched/retrieved content treated as untrusted*
+
+---
+
+## Skill & Plugin Routing (Anti-Skill Hell)
+
+When users have multiple skills, plugins, or slash commands installed (`.agents/skills`, global config skills, MCP server tools, `/goal`, `/schedule`), agents often fall into **Skill Hell**:
+- **Reinventing the wheel**: The agent writes ad-hoc code instead of following a specialized, tested skill workflow.
+- **Skill unawareness**: The agent does not realize a domain-specific skill (`android-cli`, `stitch`, etc.) exists for the task.
+
+### How Prompt Optimizer Prevents Skill Hell
+1. **Auto-Skill Discovery**: During Step 1 analysis, check if the prompt matches any installed skills or slash commands.
+2. **Explicit Skill Anchoring**: Embed a mandatory directive in the prompt commanding the receiving agent to load and view the matching skill's `SKILL.md` before writing code or making plans.
+3. **Slash Command Routing**: Recommend or embed relevant slash commands (e.g. `/goal` for long autonomous runs, `/grill-me` for design alignment interviews, `/schedule` for recurring tasks).
 
 ---
 
@@ -451,6 +485,87 @@ servers start without errors. Apply all changes directly.
 
 ---
 
+## What Bad Optimization Looks Like
+
+Recognizing anti-patterns in your own output is as important as the optimization itself.
+
+### Anti-Pattern 1: Over-Engineering Light Tasks
+
+❌ **Bad:**
+```
+Input: "format this json file"
+Output: 25-line prompt with Role ("Act as a senior data engineer"),
+Context ("JSON is a data interchange format..."), Task, Constraints,
+Verification, and few-shot examples — for a one-line task.
+```
+**Why it fails**: Wastes tokens, confuses the model with unnecessary structure, and signals to the agent that this is a complex task when it isn't.
+
+✅ **Correct:**
+```
+Reformat the following JSON with 2-space indentation, sorted keys, valid UTF-8.
+Preserve all data — do not add, remove, or modify values.
+```
+
+### Anti-Pattern 2: Passive Framing for Agent Tasks
+
+❌ **Bad:**
+```
+Input: "add dark mode to my React app"
+Output: "Write the code for a dark mode toggle component using React hooks
+and CSS custom properties. Include localStorage persistence."
+```
+**Why it fails**: The agent prints code blocks in chat. User has to copy-paste, fix imports, debug integration.
+
+✅ **Correct:**
+```
+Inspect src/App.jsx. Create a useTheme hook in src/hooks/useTheme.js.
+Add CSS custom properties for light/dark themes to src/index.css.
+Modify the root layout to use the theme hook. Apply all changes directly.
+```
+
+### Anti-Pattern 3: Adding Scope the User Never Asked For
+
+❌ **Bad:**
+```
+Input: "add a logout button"
+Output: "Implement a complete authentication system with login, logout,
+registration, password reset, email verification, and session management."
+```
+**Why it fails**: Scope creep. The user asked for one button, not a full auth system.
+
+✅ **Correct:**
+```
+Add a logout button to the header. On click, clear the auth token from
+localStorage and redirect to /login. Style consistently with existing buttons.
+```
+
+**Rule of thumb**: If your optimized prompt is 10× longer than the original and the task is simple, you over-engineered it.
+
+---
+
+## Handling Sensitive Data (PII, Credentials, Secrets)
+
+When the user's prompt or workspace contains sensitive information:
+
+### What Counts as Sensitive
+- API keys, tokens, passwords (especially in `.env` files)
+- Database connection strings with credentials
+- User PII (names, emails, phone numbers, addresses)
+- Internal hostnames, IP addresses, or infrastructure details
+- File paths that reveal organizational structure
+
+### How to Handle It
+1. **Strip or generalize** sensitive values before including them in the optimized prompt.
+2. Replace with descriptive placeholders: `YOUR_API_KEY`, `[database-host]`, `[user-email]`.
+3. Add a note in the Analysis: *"Contains sensitive context — values generalized."*
+4. If the original prompt *is* the sensitive data (e.g., "optimize my .env file"), warn the user and suggest they redact before sharing.
+
+### Example
+❌ **Bad**: `"Fix the API call to https://api.company.com/v2/users using key sk-proj-abc123def456"`
+✅ **Good**: `"Fix the API call to [API_ENDPOINT] using the API key from environment variables"`
+
+---
+
 ## Feedback Loop
 
 After the user runs the optimized prompt and reports results:
@@ -463,7 +578,9 @@ After the user runs the optimized prompt and reports results:
 
 ## Version History
 
-- **v8 (current)** — Gate 3 structural enforcement with hard decision tree and inline example. Model-aware output scaling (Frontier/Mid-range/Lightweight). Accessibility expansion (ARIA labels, WCAG AA contrast, keyboard nav) alongside responsive design for all UI tasks. 3 new examples (Light-creative/UI, data-transformation, prompt-chaining). Security hardening with 4 real-world injection attack examples and production checklist. Benchmark test suite (manual, free). Context cost reduction via loading directive. Difficulty calibration in output format. Feedback loop for iterative improvement.
+- **v10 (current)** — Meta-Skill & Skill Router evolution. Introduced Dynamic Skill Routing & Anti-Skill Hell Protocol: automatically instructs target AI agents to scan locally installed skills (`~/.gemini/config/skills/`, `.agents/skills/`, installed plugins/MCP) or perform a targeted web/internet search for domain-specific community skills before writing code. Completely dynamic (zero hardcoded skill names). Positioned Prompt Optimizer as an orchestration layer / Meta-Skill.
+- **v9** — Token efficiency refactor: SKILL.md reduced from 444 to ~280 lines by moving examples to guide.md. Merged Step 3 + Step 3.5 into unified "Tier, Scale & Adapt" step (clean integer numbering). Added open-source model support (Llama, Mistral, DeepSeek, Qwen) with dedicated syntax adapter and scaling rules. Added negative optimization examples ("What Bad Optimization Looks Like"). Added PII/sensitive data handling guidance. Compacted anti-patterns table. Merged Model & Agent Strategies into Step 4. Strengthened Gate 2 assumption-documentation for >2 unknowns.
+- **v8** — Gate 3 structural enforcement with hard decision tree and inline example. Model-aware output scaling (Frontier/Mid-range/Lightweight). Accessibility expansion (ARIA labels, WCAG AA contrast, keyboard nav) alongside responsive design for all UI tasks. 3 new examples (Light-creative/UI, data-transformation, prompt-chaining). Security hardening with 4 real-world injection attack examples and production checklist. Benchmark test suite (manual, free). Context cost reduction via loading directive. Difficulty calibration in output format. Feedback loop for iterative improvement.
 - **v7** — Integrated production system prompt principles analyzed from leaked prompts (Claude Code, Cursor, Gemini 3, OpenAI Codex/Memory). Added Model Syntax Adapters (Claude XML tags vs Gemini H2 headers vs GPT System Delimiters vs Agentic IDE tags), Memory & Preference Layering (`# Assistant Response Preferences`), and Agent Lifecycle Status Signals (`result:`).
 - **v6.1** — Restored Prompt Security section and extended guide content (Non-Goals, Prompt Chaining, Domain Adaptation, Anti-Patterns Extended, 3 worked examples). Added execution mode detection heuristics. Added Light Tier and Chat Response Mode examples.
 - **v6** — Added **Active Agent Execution Framing** to command direct workspace file editing, implementation plans, and verification commands instead of passive code blocks in chat. Added Reasoning Models ("Thinking Mode") guidance.

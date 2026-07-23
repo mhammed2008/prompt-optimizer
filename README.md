@@ -1,10 +1,10 @@
 # 🧠 Prompt Optimizer
 
-> **One skill to turn any raw idea into a production-grade AI instruction — tuned for Gemini, Claude, GPT, and AI Coding Agents.**
+> **One skill to turn any raw idea into a production-grade AI instruction — tuned for Gemini, Claude, GPT, open-source models, and AI Coding Agents.**
 
 Rewrites raw prompts into professional, structured, model-tuned instruction sets — applying persona framing, active agent execution framing, structured reasoning, constraint layering, and output-schema specification.
 
-Built for **AI Coding Agents** (Antigravity, Cursor, Claude Code, Copilot Workspace), **Gemini**, **Claude**, and **GPT**.
+Built for **AI Coding Agents** (Antigravity, Cursor, Claude Code, Copilot Workspace), **Gemini**, **Claude**, **GPT**, and **open-source models** (Llama, Mistral, DeepSeek, Qwen).
 
 ---
 
@@ -108,16 +108,19 @@ graph LR
 
 | Feature | Prompt Optimizer | ChatGPT Prompt Gen | PromptPerfect | AIPRM | FlowGPT |
 |---|:---:|:---:|:---:|:---:|:---:|
+| **Dynamic Skill Routing (Anti-Skill Hell)** | ✅ Local + Web/Internet search | ❌ | ❌ | ❌ | ❌ |
+| **Meta-Skill Orchestration** | ✅ Routes to specialized skills | ❌ | ❌ | ❌ | ❌ |
 | **Active File Editing** | ✅ | ❌ | ❌ | ❌ | ❌ |
 | **Implementation Plans** | ✅ | ❌ | ❌ | ❌ | ❌ |
 | **Safety Gates (Reject/Clarify/Skip)** | ✅ | ❌ | ❌ | ❌ | ❌ |
-| **Model-Specific Tuning** | ✅ Gemini/Claude/GPT/Agents | ❌ GPT only | ⚠️ Limited | ❌ GPT only | ❌ |
+| **Model-Specific Tuning** | ✅ Gemini/Claude/GPT/OSS/Agents | ❌ GPT only | ⚠️ Limited | ❌ GPT only | ❌ |
+| **Open-Source Model Support** | ✅ Llama/Mistral/DeepSeek/Qwen | ❌ | ❌ | ❌ | ❌ |
 | **Token-Efficient Context Injection** | ✅ | ❌ | ❌ | ❌ | ❌ |
 | **Workspace-Aware** | ✅ Reads your project | ❌ | ❌ | ❌ | ❌ |
 | **Proportional Tiering** | ✅ Light/Standard/Heavy | ❌ One-size-fits-all | ❌ | ⚠️ Categories | ❌ |
 | **Reasoning Model Support** | ✅ o1/o3/Thinking | ❌ | ❌ | ❌ | ❌ |
 | **Interactive Clarification** | ✅ ask_question tool | ❌ | ❌ | ❌ | ❌ |
-| **Prompt Security** | ✅ Anti-injection | ❌ | ❌ | ❌ | ❌ |
+| **Prompt Security** | ✅ Anti-injection + PII handling | ❌ | ❌ | ❌ | ❌ |
 | **Free & Open Source** | ✅ MIT License | ✅ Free | ❌ Paid | ⚠️ Freemium | ✅ Free |
 | **IDE Integration** | ✅ Native skill | ❌ Web only | ❌ API | ⚠️ Extension | ❌ Web only |
 
@@ -180,9 +183,15 @@ The **#1 differentiator**. Other tools generate text you copy-paste. Prompt Opti
 - **Create implementation plans** for complex tasks
 - **Run verification commands** (`npm test`, `php artisan test`, `flutter analyze`)
 
+### 🧭 Anti-Skill Hell & Meta-Skill Routing
+Saves users from managing dozens of installed skills manually. Prompt Optimizer acts as a **Meta-Skill & Skill Router**:
+- **Local Skill Discovery**: Automatically instructs target agents to scan locally installed skills (`~/.gemini/config/skills/`, `.agents/skills/`, installed plugins/MCP) and inspect matching `SKILL.md` files before writing code.
+- **Web/Internet Skill Search Fallback**: If no local skill matches, it commands the agent to search the web/internet for standard community skills, official CLI specifications, or domain best practices.
+- **Zero Hardcoded Names**: Matching happens dynamically on domain keywords—no rigid hardcoding.
+
 ```
-❌ Other tools:  "Here's the code for dark mode: ```jsx ...```"
-✅ Prompt Optimizer: "Inspect src/App.jsx, create useTheme hook, modify root layout, verify build"
+❌ Without Meta-Skill: Agent writes naive custom code from scratch, ignoring existing skills.
+✅ With Prompt Optimizer: Agent scans local/web skills, reads SKILL.md, and applies domain best practices.
 ```
 
 ### 💰 Token-Efficient Context Injection
@@ -246,14 +255,16 @@ One prompt doesn't fit all models. Prompt Optimizer tunes output for each target
 | **Gemini** | Markdown headers, flat numbered lists, system-level role framing |
 | **Claude** | XML tags (`<context>`, `<task>`), detailed anti-instructions |
 | **GPT** | System/user separation, 2-3 few-shot examples, JSON schema |
+| **Open-Source** (Llama, Mistral, DeepSeek, Qwen) | Markdown headers, <2000 tokens, explicit output format, Light/Standard only |
 | **Reasoning Models** | Unconstrained internal reasoning, rigid output constraints |
 
-### 🔒 Prompt Security
+### 🔒 Prompt Security & PII Handling
 Built-in guardrails for production prompts handling user input:
 - Delimiter isolation (`<user_input>...</user_input>`)
 - Anti-injection constraints
 - Instruction ordering enforcement
 - System prompt protection
+- **PII/credential stripping** — automatically generalizes sensitive data (API keys, passwords, internal URLs) before including in optimized prompts
 
 ### 🔄 Less Work, Full Projects from a Single Prompt
 Traditional workflow vs. Prompt Optimizer workflow:
@@ -284,9 +295,11 @@ graph TD
 
 ```
 .
-├── SKILL.md             # Core runtime skill (267 lines) — loaded by AI agents
+├── SKILL.md             # Core runtime skill (~280 lines) — loaded by AI agents
 ├── references/
-│   └── guide.md         # Extended rationale, examples & version history (359 lines)
+│   └── guide.md         # Extended rationale, examples & version history (~570 lines)
+├── benchmarks/
+│   └── test_prompts.md  # 10-test benchmark suite for validation
 └── README.md            # This file
 ```
 
