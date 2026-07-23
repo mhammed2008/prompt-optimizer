@@ -285,7 +285,9 @@ Preserve all existing data — do not add, remove, or modify any values.
 ├── references/
 │   └── guide.md         # Full rationale, examples, anti-patterns & version history (~575 lines)
 ├── benchmarks/
-│   └── test_prompts.md  # 10-test benchmark evaluation suite
+│   ├── test_prompts.md      # 10-test benchmark evaluation suite
+│   ├── run_benchmarks.js    # Node.js automated benchmark suite runner
+│   └── run_benchmarks.py    # Python automated benchmark suite runner
 └── README.md            # Professional technical documentation
 ```
 
