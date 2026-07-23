@@ -70,44 +70,23 @@ This skill improves how a request is phrased. It does not:
 
 ### AI Coding Agents (Antigravity, Cursor, Claude Code)
 - **Strengths**: File system access, terminal execution, multi-file editing, planning tools.
+- **Production Prompt Insights**:
+  - Leaked system prompts from **Cursor** and **Claude Code** reveal strict rules: agents MUST read files before editing, MUST NOT use comments or command output as a thinking scratchpad, and MUST avoid creating temporary files when editing existing ones.
+  - Require explicit line reference ranges in citations when showing existing code (`startLine:endLine:filepath`).
 - **Best Practices**:
   - Always specify target file paths explicitly: `app/Http/Controllers/ScanController.php`.
-  - Include an explicit `## Direct Workspace Actions` section listing step-by-step file edits.
-  - Instruct the agent to run verification commands (e.g. `npm test`, `php artisan test`, `flutter analyze`).
+  - Include an explicit `## Direct Workspace Actions` or `<direct_workspace_actions>` section listing step-by-step file edits.
+  - Command the agent to run verification commands (e.g. `npm test`, `php artisan test`, `flutter analyze`).
   - Use anti-instructions: *"Do NOT just output code blocks in chat."*
 
-### Reasoning Models (OpenAI o1/o3, Gemini Thinking, Claude Extended Thinking)
-- **Strengths**: Deep architectural reasoning, handling complex logic and constraint interactions.
-- **Best Practices**:
+### Reasoning Models & Model-Specific Syntax Adapters
+- **Claude (Anthropic)**: XML tags (`<role>`, `<context>`, `<task>`, `<constraints>`, `<agent_lifecycle>`) provide explicit parsing boundaries. Include `result: <deliverable>` completion tokens for background runs.
+- **Gemini (Google)**: Structured H2 headers (`## Role`, `## Execution Steps`), single-sentence silent thought step framing, and flat numbered lists.
+- **GPT & OpenAI Codex**: System/user message boundaries, `# Assistant Response Preferences` memory tracking (`Confidence=high`), and explicit `[ROLE] → [CONTEXT] → [TASK]` delimiters.
+- **Reasoning Models (o1/o3/GPT-5, Gemini Thinking, Claude Extended Thinking)**:
   - Focus constraints strictly on the **output format** and **workspace actions**.
   - Avoid forcing detailed step-by-step chain-of-thought instructions; allow the model's internal thinking process to run unconstrained.
-  - These models benefit from clear objectives and constraints, not micro-managed reasoning steps.
 
-### Gemini Models (Google — in Antigravity)
-- **Strengths**: Long context, multimodal, strong at structured output and code generation.
-- **Best Practices**:
-  - Use explicit section headers (`## Context`, `## Task`) — Gemini responds well to markdown structure.
-  - Leverage system-level framing: "You are an expert..." at the start.
-  - For code tasks, specify language, version, and style preferences explicitly.
-  - Request structured output (tables, bullet lists) rather than prose for analysis.
-  - Avoid overly nested instructions; prefer flat, numbered lists.
-
-### Claude Models (Anthropic — in Antigravity)
-- **Strengths**: Nuanced reasoning, instruction following, long-form generation.
-- **Best Practices**:
-  - Claude responds exceptionally well to detailed constraints and anti-instructions.
-  - For long or complex prompts with many sections, consider wrapping sections in XML tags (`<context>`, `<task>`, `<constraints>`, `<execution_steps>`) — this can improve section boundary detection.
-  - For code generation, specify the exact function signatures or interfaces expected.
-  - Use `<example>` tags for few-shot demonstrations in complex prompts — Claude parses these reliably.
-
-### GPT Models (OpenAI)
-- **Strengths**: Strong instruction following, excellent at structured JSON output, reliable few-shot learning.
-- **Best Practices**:
-  - System/user message separation is powerful — frame the persona at the very start.
-  - Few-shot examples are highly effective — 2-3 examples dramatically improve output consistency.
-  - Use numbered steps for procedural tasks.
-  - For structured JSON output, specify `Output as valid JSON` and define the schema.
-  - For reasoning-focused models, avoid over-constraining the reasoning process; focus constraints on the *output*, not the *thinking*.
 
 ---
 
@@ -145,7 +124,7 @@ The canonical structure applies to all domains, but emphasis shifts:
 | Domain | Prioritize | De-emphasize |
 |---|---|---|
 | **Code / Workspace** | **Active File Edits**, Implementation Plan, Verification, Constraints | Passive chat code blocks, Few-shot |
-| **Games / UI / Visual** | Brief style direction ("neon theme"), key mechanics only | Heavy constraints, rigid output format. **Let the model be creative.** |
+| **Games / UI / Visual** | Brief style direction ("neon theme"), key mechanics only, **Responsive design** (mobile-first, viewport meta, breakpoints, touch targets) | Heavy constraints, rigid output format. **Let the model be creative.** |
 | **Writing / Creative** | Tone/voice specification, Audience, Style examples | Rigid constraint layering (stifles creativity) |
 | **Analysis / Research** | Context depth, Method, Source requirements | Negative prompting (analysis benefits from exploration) |
 | **Data transformation** | Input/Output schema (JSON), Edge cases, Few-shot examples | Role framing (less important for data tasks) |
@@ -165,6 +144,7 @@ The canonical structure applies to all domains, but emphasis shifts:
 | Spelling/grammar errors | Correct all errors |
 | Run-on instructions | Break into numbered steps or bullet points |
 | Assuming context the model doesn't have | Add a `Context` section with environment details |
+| UI task with no responsive design | Add: `"Ensure responsive design: include <meta name='viewport'>, use CSS media queries for mobile/tablet/desktop breakpoints, and ensure all interactive elements have ≥ 44px touch targets."` |
 
 ---
 
@@ -350,7 +330,9 @@ Add JWT-based authentication middleware to all `/api/orders` routes.
 
 ## Version History
 
-- **v6.1 (current)** — Restored Prompt Security section and extended guide content (Non-Goals, Prompt Chaining, Domain Adaptation, Anti-Patterns Extended, 3 worked examples). Added execution mode detection heuristics. Added Light Tier and Chat Response Mode examples.
+- **v7 (current)** — Integrated production system prompt principles analyzed from leaked prompts (Claude Code, Cursor, Gemini 3, OpenAI Codex/Memory). Added Model Syntax Adapters (Claude XML tags vs Gemini H2 headers vs GPT System Delimiters vs Agentic IDE tags), Memory & Preference Layering (`# Assistant Response Preferences`), and Agent Lifecycle Status Signals (`result:`).
+- **v6.1** — Restored Prompt Security section and extended guide content (Non-Goals, Prompt Chaining, Domain Adaptation, Anti-Patterns Extended, 3 worked examples). Added execution mode detection heuristics. Added Light Tier and Chat Response Mode examples.
+
 - **v6** — Added **Active Agent Execution Framing** to command direct workspace file editing, implementation plans, and verification commands instead of passive code blocks in chat. Added Reasoning Models ("Thinking Mode") guidance.
 - **v5** — Split into lean runtime SKILL.md (~210 lines) + reference guide. Adopted Gate-based processing and interactive pre-draft interview.
 - **v4** — Architectural rewrite: Gates 1-3, Definitions, Domain Adaptation, Prompt Security, JSON Schema.

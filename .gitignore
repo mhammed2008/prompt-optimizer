@@ -12,3 +12,7 @@ Desktop.ini
 # Temporary Files
 *.tmp
 *.log
+
+# Cloned External Repos
+system_prompts_leaks/
+

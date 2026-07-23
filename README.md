@@ -219,6 +219,15 @@ Every prompt passes through **3 sequential gates** before optimization:
 | **Gate 2: Clarify** | Asks ≤2 targeted questions for missing critical context | "Fix my API" → "Which framework? Which endpoint?" |
 | **Gate 3: Skip** | Avoids bloating already-good prompts | "Format this JSON" → Returned as-is |
 
+### 🛠️ Model Syntax Adapters & System Prompt Intelligence
+Built from deep analysis of official production system prompts from Anthropic, Google, Cursor, and OpenAI:
+- **Claude (Anthropic)**: Formats section boundaries with XML tags (`<role>`, `<task>`, `<constraints>`, `<agent_lifecycle>`).
+- **Gemini (Google)**: Uses flat Markdown headers (`## Role`, `## Context`, `## Execution Steps`) and single-sentence silent thought step framing.
+- **GPT & OpenAI Codex**: System/user message boundaries, `# Assistant Response Preferences` memory tracking (`Confidence=high`), and explicit `[ROLE] → [CONTEXT] → [TASK]` delimiters.
+- **Cursor / Antigravity Agents**: Enforces strict `<making_code_changes>` rules (**MUST Read before Edit**, no comment thinking scratchpad, line citations).
+- **Agent Lifecycle Signals**: Injects status tokens (`result: <summary>`, `needs input: <reason>`, `failed: <reason>`) for background and automated execution runs.
+
+
 ### 📐 Proportional Three-Tier Architecture
 Matches prompt complexity to task complexity — never over-engineers or under-specifies:
 

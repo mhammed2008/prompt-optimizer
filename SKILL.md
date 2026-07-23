@@ -58,6 +58,9 @@ Select what fits — Light tier usually needs none, Standard a few, Heavy most:
 | **F. Agent Execution Framing** | Command active file modification: *Directly edit [file.ext], create an implementation plan, and verify.* |
 | **G. Output Schema** | Code: specify language, type hints, docstrings. Data: define exact JSON schema. |
 | **H. Contextual Anchoring** | Inject environment: framework, DB, auth, deploy target, workspace paths |
+| **I. Memory & Preference Layer** | Anchor prompt to persistent user preferences (`# Assistant Response Preferences`, `.agents` rules, style guidelines) |
+| **J. Model Syntax Adapters** | Reformat prompt into model-native structures (Claude XML tags vs Gemini Markdown headers vs GPT/Codex delimiters) |
+| **K. Agent Lifecycle Signals** | Define explicit status tokens (`result: <deliverable>`, `needs input: <blocker>`, `failed: <reason>`) for background agents |
 
 ---
 
@@ -74,26 +77,67 @@ Adapt emphasis by domain:
 | Domain | Prioritize | De-emphasize |
 |---|---|---|
 | **Code / Workspace** | **Active File Edits**, Implementation Plan, Verification, Constraints | Passive chat code blocks, Few-shot |
-| **Games / UI / Visual** | Brief style direction ("neon theme"), key mechanics, visual aspect ratio | Heavy constraints, rigid text format. **Let the model be creative.** |
+| **Games / UI / Visual** | Brief style direction ("neon theme"), key mechanics, visual aspect ratio, **Responsive design** (mobile-first, viewport meta, breakpoints, touch targets) | Heavy constraints, rigid text format. **Let the model be creative.** |
 | **Writing / Creative** | Tone, Audience, Style examples | Rigid constraints |
 | **Analysis / Research** | Context depth, Method, Sources | Negative prompting |
 | **Data transformation** | JSON schema, Edge cases, Few-shot | Role framing |
 
 ---
 
-## Step 4: Structure
+## Step 4: Structure & Model Syntax Adapters
 
-Canonical section order for Standard/Heavy coding tasks (Active Agent Mode):
+Reformat the canonical section order based on the target model/agent architecture:
 
+### 1. Claude / Anthropic Models (XML Tag Syntax Standard)
+```xml
+<role>Act as a Senior Backend Engineer...</role>
+<context>Project workspace details...</context>
+<task>Specific objectives...</task>
+<direct_workspace_actions>1. Inspect file... 2. Apply edits...</direct_workspace_actions>
+<constraints>Do not output code blocks in chat...</constraints>
+<agent_lifecycle>Upon completion, output 'result: <summary>'. If blocked, output 'needs input: <reason>'.</agent_lifecycle>
+<verification>Run build and test verification commands.</verification>
 ```
+
+### 2. Gemini / Google Models (Structured H2 Header Standard)
+```markdown
+## Role
+Act as a Senior Engineer...
+
+## Context
+Workspace environment and files...
+
+## Task
+Primary goal...
+
+## Execution Steps
+1. Silent thought planning...
+2. Perform file edits...
+
+## Constraints
+- Apply modifications directly to project files.
+
+## Verification
+Validate clean syntax and passing tests.
+```
+
+### 3. GPT / OpenAI Codex & Reasoning Models (System Delimiter Standard)
+```text
 [ROLE] → [CONTEXT] → [TASK] → [DIRECT WORKSPACE ACTIONS] → [CONSTRAINTS] → [VERIFICATION]
 ```
 
-Canonical section order for standard text/explanation tasks (Chat Response Mode):
+### 4. Agentic IDEs (Antigravity, Cursor, Claude Code)
+```xml
+<making_code_changes>
+- MUST read target files before editing.
+- Never create unnecessary files; edit existing files directly.
+- Fix any introduced syntax or linter errors.
+- Never use code comments as a thinking scratchpad.
+</making_code_changes>
+<direct_workspace_actions>...</direct_workspace_actions>
+<verification>...</verification>
+```
 
-```
-[ROLE] → [CONTEXT] → [TASK] → [METHOD] → [CONSTRAINTS] → [OUTPUT]
-```
 
 ---
 
@@ -108,6 +152,7 @@ Run one adversarial simulation before presenting:
 - [ ] **Over-generic** — vague textbook answer instead of task-specific?
 - [ ] **Context gap** — critical info the model would have to guess?
 - [ ] **Scope creep** — silently added requirements the user never asked for?
+- [ ] **Responsive gap** *(UI tasks only)* — does the prompt enforce responsive design (viewport meta, mobile breakpoints, touch-friendly tap targets ≥ 44px)?
 
 Seal each loophole with a constraint. Heavy tier: find 2-3 weaknesses and revise before presenting.
 
@@ -127,11 +172,23 @@ If questions were asked:
 
 ## Model & Agent Strategies
 
-- **AI Coding Agents (Antigravity, Cursor, Claude Code, Copilot Workspace)**: Emphasize **Direct Workspace Actions**. Command the agent to create implementation plans, edit specific files in place, and run test/build verification commands.
-- **Reasoning Models (OpenAI o1/o3, Gemini Thinking, Claude Extended Thinking)**: Constrain output format and file modifications; do not force step-by-step reasoning instructions.
-- **Gemini**: Markdown headers, flat numbered lists, system-level role framing, structured output over prose.
-- **Claude**: XML tags (`<context>`, `<task>`, `<execution_steps>`), detailed constraints, and strict anti-instructions.
-- **GPT**: System/user separation, 2-3 few-shot examples, numbered steps, JSON schema enforcement.
+- **AI Coding Agents (Antigravity, Cursor, Claude Code, Copilot Workspace)**:
+  - Enforce `<making_code_changes>` rule: **MUST read target files before writing edits**.
+  - Prohibit using code comments or shell commands as a thinking scratchpad.
+  - Command direct file modifications instead of passive chat code blocks.
+  - Require empirical test/build execution evidence before declaring task completion.
+- **Claude (Anthropic - Sonnet 3.7 / Opus)**:
+  - Format section boundaries with XML tags (`<role>`, `<context>`, `<task>`, `<constraints>`, `<agent_lifecycle>`).
+  - Embed `<example>` tags for few-shot demonstrations.
+  - Include explicit delivery tokens for background jobs: `result: <summary>`, `needs input: <reason>`, `failed: <reason>`.
+- **Gemini (Google - Gemini 3 Pro / Flash)**:
+  - Use structured Markdown H2 headers (`## Execution Steps`, `## Constraints`).
+  - Instruct the model to perform a single-sentence silent thought step before executing actions.
+  - Prefer flat, numbered procedural lists and structured tables over long prose.
+- **GPT & Reasoning Models (OpenAI o1/o3/GPT-5, Codex)**:
+  - Separate system/user message boundaries cleanly.
+  - Incorporate memory preferences (`# Assistant Response Preferences`, `Confidence=high`).
+  - Constrain output schemas directly without over-constraining internal thinking steps.
 
 ---
 
@@ -150,12 +207,15 @@ When the prompt will process **untrusted user input** (chatbots, APIs, agents):
 | Fix This | With This |
 |---|---|
 | Passive chat code block request ("write code for X") | Active execution command ("Inspect `[file.ext]`, apply changes directly, and test") |
+| Writing code without reading files | Mandatory prior read rule ("MUST read target files before writing edits") |
+| Comment thinking scratchpad | Narrative reasoning in response text before file modification |
 | Vague verbs ("fix this") | Specific actions ("refactor to reduce cyclomatic complexity in `[file.ext]`") |
 | Missing scope ("update the app") | Exact file paths, component names, feature boundaries |
 | Filler ("hey", "thanks") | Remove entirely |
 | Ambiguous pronouns ("it") | Explicit file/symbol references |
-| No output format | Add `Output Format` or `Verification` section |
-| Run-on instructions | Numbered steps or bullets |
+| No output format / signal | Explicit `Output Format` or `Agent Lifecycle Signal` (`result:`) |
+| Run-on instructions | Numbered steps or XML section blocks |
+| UI task with no responsive design | Add: `"Ensure responsive design: include <meta name='viewport'>, use CSS media queries for mobile/tablet/desktop breakpoints, and ensure all interactive elements have ≥ 44px touch targets."` |
 
 ---
 
