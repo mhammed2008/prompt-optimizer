@@ -1,0 +1,30 @@
+name: Benchmark Suite
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  benchmark:
+    name: Run Benchmark Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run benchmark suite
+        run: node benchmarks/run_benchmarks.js
+
+      - name: Run benchmark suite (JSON output)
+        run: |
+          RESULT=$(node benchmarks/run_benchmarks.js --json 2>/dev/null | tail -n 1)
+          SCORE=$(echo "$RESULT" | node -e "const d=require('fs').readFileSync('/dev/stdin','utf8');const j=JSON.parse(d);console.log(j.score);process.exit(j.passed===j.total?0:1)")
+          echo "Benchmark score: $SCORE/10"

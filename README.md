@@ -93,7 +93,7 @@ Tailors prompt geometry to the exact target LLM architecture:
 
 ## 📊 Comprehensive Tool Comparison
 
-| Capability / Feature                        |        Prompt Optimizer (v10)        | ChatGPT Prompt Gen | PromptPerfect |     AIPRM     |   FlowGPT    |
+| Capability / Feature                        |        Prompt Optimizer (v11)        | ChatGPT Prompt Gen | PromptPerfect |     AIPRM     |   FlowGPT    |
 | ------------------------------------------- | :----------------------------------: | :----------------: | :-----------: | :-----------: | :----------: |
 | **Active File Editing Directive**           |    ✅ **Direct Workspace Edits**     |    ❌ Text Only    | ❌ Text Only  | ❌ Text Only  | ❌ Text Only |
 | **Dynamic Skill Routing (Anti-Skill Hell)** |      ✅ **Local + Web Search**       |         ❌         |      ❌       |      ❌       |      ❌      |
@@ -106,6 +106,8 @@ Tailors prompt geometry to the exact target LLM architecture:
 | **Security & PII Sanitization**             |  ✅ **Anti-Injection + Redaction**   |         ❌         |      ❌       |      ❌       |      ❌      |
 | **Empirical Verification Step**             | ✅ **Automated Build/Test Commands** |         ❌         |      ❌       |      ❌       |      ❌      |
 | **Open Source & Free**                      |          ✅ **MIT License**          |      ✅ Free       |  ❌ Paid API  |  ⚠️ Freemium  |   ✅ Free    |
+
+> **Note**: This comparison reflects feature presence specifically in the **prompt optimization and agentic coding** context. Other tools may excel in areas outside this scope (e.g., template marketplaces, team collaboration, API integrations).
 
 ---
 
@@ -131,11 +133,13 @@ graph LR
     style P3 fill:#10b981,stroke:#059669,color:#fff
 ```
 
-| Task Complexity                               | Manual Trial-and-Error  | With Prompt Optimizer |  Token Savings  |
-| --------------------------------------------- | :---------------------: | :-------------------: | :-------------: |
-| **Light** (Bug fix / JSON format)             |  ~250 tokens × 3 turns  | ~120 tokens × 1 shot  | **84% Savings** |
-| **Standard** (API controller / UI component)  |  ~600 tokens × 4 turns  | ~380 tokens × 1 shot  | **84% Savings** |
-| **Heavy** (Full-stack feature / Architecture) | ~1,200 tokens × 5 turns | ~650 tokens × 1 shot  | **89% Savings** |
+| Task Complexity                               | Manual Trial-and-Error  | With Prompt Optimizer | Estimated Savings |
+| --------------------------------------------- | :---------------------: | :-------------------: | :---------------: |
+| **Light** (Bug fix / JSON format)             |  ~250 tokens × 3 turns  | ~120 tokens × 1 shot  |    **~84%**       |
+| **Standard** (API controller / UI component)  |  ~600 tokens × 4 turns  | ~380 tokens × 1 shot  |    **~84%**       |
+| **Heavy** (Full-stack feature / Architecture) | ~1,200 tokens × 5 turns | ~650 tokens × 1 shot  |    **~89%**       |
+
+> **Methodology**: Token savings are estimates based on observed multi-turn re-prompting patterns vs. single-shot structured prompts. Actual savings vary by task complexity, model capability, and user experience. The "Manual Trial-and-Error" column assumes typical iterative prompting without structured optimization.
 
 ---
 
@@ -281,14 +285,19 @@ Preserve all existing data — do not add, remove, or modify any values.
 
 ```
 .
-├── SKILL.md             # Core runtime skill (~250 lines) — loaded by AI agents
+├── SKILL.md                 # Core runtime skill (~400 lines) — loaded by AI agents
+├── CHANGELOG.md             # Version history (Keep a Changelog format)
 ├── references/
-│   └── guide.md         # Full rationale, examples, anti-patterns & version history (~575 lines)
+│   └── guide.md             # Full rationale, examples, anti-patterns & version history (~615 lines)
 ├── benchmarks/
 │   ├── test_prompts.md      # 10-test benchmark evaluation suite
 │   ├── run_benchmarks.js    # Node.js automated benchmark suite runner
-│   └── run_benchmarks.py    # Python automated benchmark suite runner
-└── README.md            # Professional technical documentation
+│   ├── run_benchmarks.py    # Python automated benchmark suite runner
+│   └── CONTRIBUTING.md      # Guide for contributing new test cases
+├── .github/
+│   └── workflows/
+│       └── benchmark.yml    # CI workflow — runs benchmark suite on push/PR
+└── README.md                # Professional technical documentation
 ```
 
 ---

@@ -7,7 +7,7 @@ description: Meta-Skill & Skill Router. Rewrites a user's raw prompt into a prof
 
 Rewrites a user's raw prompt into a clear, structured, KV-cache-optimized instruction — matching effort to the task instead of maximizing length for its own sake. Functions as a **Meta-Skill & Skill Router**: enforces **Prefix KV-Caching** (Stable Prefix → Dynamic Tail) to slash token costs by ~50-80%, prunes context, and dynamically instructs target AI agents to discover and inspect locally installed skills or search the web/internet for specialized skills before writing code. Ensures coding prompts explicitly command AI agents to **directly edit workspace files** rather than returning passive chat code blocks. Only run this when the user explicitly asks to optimize a prompt or invokes this skill by name.
 
-> **Loading Rule**: Only read `references/guide.md` if the task is **Heavy tier** or if you need worked examples for an unfamiliar domain. For Light and Standard tasks, this file alone is sufficient. For additional worked examples across all tiers, see `references/guide.md`.
+> **Loading Rule**: Only read `references/guide.md` if the task is **Heavy tier** or if you need worked examples for an unfamiliar domain. For Light and Standard tasks, this file alone is sufficient. For additional worked examples across all tiers, see `references/guide.md`. If `guide.md` is empty, missing, or inaccessible, proceed using only the examples and instructions in this file — do not error or stall.
 
 ---
 
@@ -39,7 +39,7 @@ Before rewriting, evaluate: **intent**, **missing context**, **ambiguity**, **sc
 
 1. Check the workspace first (open files, `package.json`, project structure — using available file search/grep/tree tools efficiently before reading whole files).
 2. If the user hasn't specified a target model (Claude, Gemini, GPT, open-source, or AI Agent), ask.
-3. Ask **at most 2 questions** — this is a hard limit, not a suggestion. If you have more unknowns, **pick the 2 most critical, make reasonable defaults for the rest**, and document your assumptions in the Analysis section so the user can override them.
+3. Ask **at most 2 questions** — this is a hard limit, not a suggestion. If you have more unknowns, **pick the 2 most critical, make reasonable defaults for the rest**, and document your assumptions in a clearly labeled **`## Assumed Defaults`** section in the output so the user can spot and override them before running the prompt. Do NOT bury assumptions inside other sections.
 4. In interactive IDE environments (Antigravity, Cursor), **use the `ask_question` tool** to present questions as clickable options with a recommended default. If tools are unavailable, output numbered text questions.
 5. **Wait for answers before generating the prompt.**
 6. Only use `[PLACEHOLDER]` values if the user explicitly declines to answer.
@@ -103,6 +103,8 @@ Determine tier, then scale for the target model class, then adapt emphasis by do
 | **Heavy**    | 3+, cross-domain, mission-critical                       | Full structure + reasoning, active execution, anti-instructions  |
 
 ### Model-Aware Scaling
+
+> **Model guidance last validated**: July 2026. Model capabilities evolve rapidly — re-verify against current model cards quarterly.
 
 Scale output complexity for the target model class. If unspecified, ask during Gate 2.
 
@@ -385,3 +387,14 @@ After the user runs the optimized prompt and reports results:
 - Use this feedback to calibrate future tier decisions in the same conversation.
 
 See `references/guide.md` for full worked examples and extended rationale.
+
+---
+
+## Self-Check (First Invocation)
+
+On first use in a session, verify these files exist relative to this SKILL.md:
+
+- `references/guide.md` — required for Heavy tier worked examples. If missing or empty, note in Analysis: _"Reference guide unavailable — proceeding with built-in examples only."_
+- `benchmarks/test_prompts.md` — optional, for self-testing the skill's output quality.
+
+Do not fail or stall if optional files are absent. Proceed with available resources and note any gaps.
