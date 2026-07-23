@@ -7,6 +7,8 @@ description: Rewrites a user's raw prompt into a professional, structured, model
 
 Rewrites a user's raw prompt into a clear, structured, model-tuned instruction — matching effort to the task instead of maximizing length for its own sake. Ensures coding prompts explicitly command AI agents to **directly edit workspace files** rather than returning passive chat code blocks. Only run this when the user explicitly asks to optimize a prompt or invokes this skill by name.
 
+> **Loading Rule**: Only read `references/guide.md` if the task is **Heavy tier** or if you need worked examples for an unfamiliar domain. For Light and Standard tasks, this file alone is sufficient.
+
 ---
 
 ## Definitions
@@ -40,7 +42,23 @@ Before rewriting, evaluate: **intent**, **missing context**, **ambiguity**, **sc
 5. **Wait for answers before generating the prompt.**
 6. Only use `[PLACEHOLDER]` values if the user explicitly declines to answer.
 
-**Gate 3 — Skip** if the prompt is already optimal for its tier. Say so, make minimal changes or none. **Be especially aggressive with Gate 3 for creative tasks** (games, UI demos, visual projects, art) — these tasks often perform WORSE with heavy structure. Default creative tasks to Light tier or skip entirely.
+**Gate 3 — Skip or Light-only** if the prompt meets ALL of these: ≤1 ambiguous variable, single action, single domain, no missing critical context.
+
+**HARD RULE**: If Gate 3 triggers, you MUST output one of:
+1. **Skip** — return the original prompt unchanged with "Already optimal."
+2. **Light rewrite** — original prompt + at most 2-3 added constraint lines. No Role, Context, Verification, or structural sections.
+
+**Creative tasks (games, UI, visual, art)**: Gate 3 is even more aggressive. If the prompt names the tech stack and the goal is clear, default to Light rewrite or Skip. Do NOT add structural sections to creative prompts unless the user explicitly asks for Heavy optimization.
+
+**Gate 3 decision example:**
+```
+Input:  "create a snake game using html css js with modern style"
+Gate 3: Triggers → Light rewrite (tech stack clear, goal clear, creative task)
+Output: "Create a snake game in a single HTML file (inline CSS + JS). Modern dark
+         theme with neon glow effects, smooth canvas animations, responsive layout
+         with viewport meta and mobile breakpoints, score tracking, and game-over
+         restart screen."
+```
 
 ---
 
@@ -77,10 +95,23 @@ Adapt emphasis by domain:
 | Domain | Prioritize | De-emphasize |
 |---|---|---|
 | **Code / Workspace** | **Active File Edits**, Implementation Plan, Verification, Constraints | Passive chat code blocks, Few-shot |
-| **Games / UI / Visual** | Brief style direction ("neon theme"), key mechanics, visual aspect ratio, **Responsive design** (mobile-first, viewport meta, breakpoints, touch targets) | Heavy constraints, rigid text format. **Let the model be creative.** |
+| **Games / UI / Visual** | Brief style direction ("neon theme"), key mechanics, **Responsive design** (mobile-first, viewport meta, breakpoints, touch targets ≥ 44px), **Accessibility** (semantic HTML, ARIA labels, WCAG AA contrast ≥ 4.5:1, keyboard nav) | Heavy constraints, rigid text format. **Let the model be creative.** |
 | **Writing / Creative** | Tone, Audience, Style examples | Rigid constraints |
 | **Analysis / Research** | Context depth, Method, Sources | Negative prompting |
 | **Data transformation** | JSON schema, Edge cases, Few-shot | Role framing |
+
+---
+
+## Step 3.5: Model-Aware Scaling
+
+After determining the tier, scale output complexity based on the **target model class**. If the user hasn't specified a target model, ask during Gate 2.
+
+| Target Model Class | Scaling Rule |
+|---|---|
+| **Frontier** (Opus, GPT-5, Gemini Pro) | Full tier output — all sections allowed |
+| **Mid-range** (Sonnet, GPT-4o, Gemini Flash) | Drop Role framing for Light tier. Simplify Verification to 1 line. Prefer imperative sentences over structured headers for Standard tier. |
+| **Lightweight** (Haiku, GPT-4o-mini, Flash-Lite) | Light tier max. No structural sections. Imperative 2-3 sentence prompt only. If the task genuinely needs Standard+, warn the user the model may underperform. |
+| **Unknown / not specified** | Default to Mid-range scaling. |
 
 ---
 
@@ -152,7 +183,7 @@ Run one adversarial simulation before presenting:
 - [ ] **Over-generic** — vague textbook answer instead of task-specific?
 - [ ] **Context gap** — critical info the model would have to guess?
 - [ ] **Scope creep** — silently added requirements the user never asked for?
-- [ ] **Responsive gap** *(UI tasks only)* — does the prompt enforce responsive design (viewport meta, mobile breakpoints, touch-friendly tap targets ≥ 44px)?
+- [ ] **UI quality gap** *(UI tasks only)* — does the prompt enforce: responsive design (viewport meta, breakpoints, ≥ 44px touch targets), accessibility (semantic HTML, ARIA labels on interactive elements, WCAG AA contrast ≥ 4.5:1, keyboard-navigable focus states)?
 
 Seal each loophole with a constraint. Heavy tier: find 2-3 weaknesses and revise before presenting.
 
@@ -215,7 +246,7 @@ When the prompt will process **untrusted user input** (chatbots, APIs, agents):
 | Ambiguous pronouns ("it") | Explicit file/symbol references |
 | No output format / signal | Explicit `Output Format` or `Agent Lifecycle Signal` (`result:`) |
 | Run-on instructions | Numbered steps or XML section blocks |
-| UI task with no responsive design | Add: `"Ensure responsive design: include <meta name='viewport'>, use CSS media queries for mobile/tablet/desktop breakpoints, and ensure all interactive elements have ≥ 44px touch targets."` |
+| UI task missing responsive/a11y | Add: `"Responsive: include <meta name='viewport'>, CSS media queries for mobile/tablet/desktop breakpoints, ≥ 44px touch targets. Accessible: semantic HTML elements, ARIA labels on buttons/inputs, WCAG AA contrast (≥ 4.5:1), visible keyboard focus states."` |
 
 ---
 
@@ -226,6 +257,7 @@ When the prompt will process **untrusted user input** (chatbots, APIs, agents):
 3. **Optimized Prompt** — after answers (or if no questions needed): the prompt in a clean code block. Label **(Finalized)**.
 4. **Remaining Risks** — failure modes sealed, or "No remaining risks identified."
 5. **Model/Agent Notes** *(optional)* — tips for target AI agent or model.
+6. **Difficulty Calibration** *(optional)* — if the task is simple and the optimized prompt is barely different from the raw prompt, say so honestly: *"This prompt was already well-scoped. Only minor constraints added."* Do not inflate value.
 
 ---
 
@@ -317,11 +349,94 @@ Structured explanation with code examples. Keep under 500 words.
 
 ---
 
+### Light Tier — Creative/UI (Active Agent Mode)
+
+**Original:** "make a portfolio website with html css js"
+
+**Optimized Prompt:**
+```text
+Build a single-page portfolio website (HTML + CSS + JS). Dark theme with gradient
+accents, smooth scroll navigation, responsive layout (mobile-first, viewport meta,
+breakpoints at 768px/1024px), a hero section with animated text, project cards grid,
+and a contact form. Semantic HTML, ARIA labels on form inputs, WCAG AA contrast,
+keyboard-navigable. All interactive elements ≥ 44px touch targets.
+```
+**Risks sealed:** Added responsive + accessibility constraints, scoped to single-page, specified sections.
+
+---
+
+### Standard Tier — Data Transformation (Chat Response Mode)
+
+**Original:** "convert my csv to json"
+
+**Optimized Prompt:**
+```text
+## Task
+Convert the provided CSV data to a JSON array of objects.
+
+## Schema
+- Each CSV row becomes one JSON object.
+- Column headers become keys (lowercased, spaces replaced with underscores).
+- Numeric strings are cast to numbers. Empty cells become `null`.
+
+## Constraints
+- Output valid JSON only — no markdown fences, no explanation.
+- Preserve row order.
+- Handle edge cases: quoted commas, escaped quotes, trailing newlines.
+
+## Output Format
+[{"column_name": value, ...}, ...]
+```
+**Risks sealed:** Locked schema, handled edge cases, prevented markdown wrapping.
+
+---
+
+### Prompt Chaining Example (Active Agent Mode)
+
+**Original:** "build me a full-stack task app"
+
+**Optimized (Chain of 3 prompts):**
+
+**Prompt 1/3 — Backend:**
+```text
+Set up an Express.js REST API in server/. Create CRUD endpoints for /api/tasks
+(GET, POST, PUT, DELETE) with in-memory storage. Include error handling middleware.
+Apply all code directly to workspace files.
+```
+
+**Prompt 2/3 — Frontend:**
+```text
+Create a React app in client/. Build TaskList, TaskForm, and TaskItem components.
+Connect to the /api/tasks endpoints from Prompt 1. Use CSS Modules for styling.
+Responsive layout with mobile breakpoints, ARIA labels on form inputs.
+Apply all code directly to workspace files.
+```
+
+**Prompt 3/3 — Integration:**
+```text
+Add a root package.json with concurrent dev scripts for client/ and server/.
+Add a proxy config so React dev server forwards /api to Express. Verify both
+servers start without errors. Apply all changes directly.
+```
+**Risks sealed:** Scoped each prompt to a single concern, defined handoff points between prompts.
+
+---
+
 ## Multi-Turn
 
 - Reference prior context explicitly, don't re-derive it.
 - State only what changed — use delta instructions.
 - Carry forward workspace execution constraints unless lifted.
 - Add a "Current State" summary if the conversation has drifted.
+
+---
+
+## Feedback Loop
+
+After the user runs the optimized prompt and reports results:
+- **Good result**: Note which techniques contributed most for future reference.
+- **Poor result**: Diagnose which constraint failed or was missing, and offer a revised prompt.
+- **Marginal result**: Check if the tier was appropriate — over-optimization degrades simple tasks.
+- Use this feedback to calibrate future tier decisions in the same conversation.
 
 See `references/guide.md` for full worked examples and extended rationale.
